@@ -66,7 +66,7 @@ function genImageRoute(folders: string[]) {
 genImageRoute(['Logos']);
 genImageRoute(['Screenshots']);
 
-app.get('/', (req: Request, res: Response) => {
+app.get(`${urlBase}/`, (req: Request, res: Response) => {
   res.send('Express + TypeScript Server');
 });
 
