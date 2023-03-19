@@ -8,13 +8,14 @@ dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT;
+const urlBase = process.env.URL_BASE || '';
 const imagesFolder = path.resolve(process.env.IMAGES_FOLDER || 'images');
 const cacheFolder = path.resolve(process.env.CACHE_FOLDER || 'cache');
 
 function genImageRoute(folders: string[]) {
   const cachePath = path.join(cacheFolder, ...folders);
   fs.mkdirSync(cachePath, { recursive: true });
-  app.get(`/${folders.join('/')}/:f1/:f2/:filename`, async (req: Request, res: Response) => {
+  app.get(`${urlBase}/${folders.join('/')}/:f1/:f2/:filename`, async (req: Request, res: Response) => {
     const filePath = path.join(imagesFolder, ...folders, req.params.f1, req.params.f2, req.params.filename);
     if (isSubFile(imagesFolder, filePath)) {
       const fileName = path.parse(filePath).name;
