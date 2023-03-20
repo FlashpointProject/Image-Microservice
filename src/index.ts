@@ -4,6 +4,7 @@ import path from 'path';
 import sharp from 'sharp';
 import * as fs from 'fs';
 import prettyBytes from 'pretty-bytes';
+import e from 'express';
 
 dotenv.config();
 
@@ -20,10 +21,17 @@ function debugPrint(text: string) {
   };
 }
 
-async function dirSize(directory: string) {
-  const files = await fs.promises.readdir( directory );
-  const stats = files.map( file => fs.promises.stat( path.join( directory, file ) ) );
-  return ( await Promise.all( stats ) ).reduce( ( accumulator, { size } ) => accumulator + size, 0 );
+async function dirSize(folder: string): Promise<number> {
+  let bytes = 0;
+  const files = await fs.promises.readdir(folder, { withFileTypes: true });
+  for (const f of files) {
+    if (f.isDirectory()) {
+      bytes += await dirSize(path.join(folder, f.name));
+    } else {
+      bytes += (await fs.promises.stat(path.join(folder, f.name))).size;
+    }
+  }
+  return bytes;
 }
 
 async function precacheTask(folders: string[]) {
