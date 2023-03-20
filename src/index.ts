@@ -33,35 +33,49 @@ async function precacheTask(folders: string[]) {
   const rootPath = path.join(imagesFolder, ...folders);
   await fs.promises.mkdir(cachePath, { recursive: true });
   await fs.promises.mkdir(cachePath, { recursive: true });
-  await precacheFolder(cachePath, rootPath, rootPath);
+  const badPaths = await precacheFolder(cachePath, rootPath, rootPath);
   const msTaken = (new Date()).getTime() - startTime.getTime();
   console.log(`Precache finished for ${folders.join('/')}, took ${Math.floor(msTaken/1000)} seconds`);
+  if (badPaths.length > 0) {
+    const logPath = folders.join('-') + '.txt';
+    await fs.promises.writeFile(logPath, badPaths.join('\n'));
+    console.log(`${badPaths.length} Precache failures for ${folders.join('/')} saved to ${logPath}`)
+  }
   if (debug) {
     // Calculate original size
     const orgSize = await dirSize(rootPath);
     // Calculate cache size
     const size = await dirSize(cachePath);
     console.log(`Precache size for ${folders.join('/')}` +
+    `\nFailures - ${badPaths.length}` +
     `\nOriginal - ${prettyBytes(orgSize)}` +
     `\nCached   - ${prettyBytes(size)}` +
     `\nSaved    - ${prettyBytes(orgSize - size)} (${((size / orgSize) * 100).toFixed(2)}%)`);
   }
 }
 
-async function precacheFolder(cachePath: string, rootPath: string, folder: string) {
+async function precacheFolder(cachePath: string, rootPath: string, folder: string): Promise<string[]> {
+  let badPaths: string[] = [];
   const files = await fs.promises.readdir(folder, { withFileTypes: true });
   for (const file of files) {
     if (file.isDirectory()) {
       // Cache folder
       const newFolder = path.join(folder, file.name);
-      await precacheFolder(cachePath, rootPath, newFolder);
+      await precacheFolder(cachePath, rootPath, newFolder)
+      .then((res) => {
+        badPaths = badPaths.concat(res);
+      });
     } else {
       // Cache file
       const filePath = path.join(folder, file.name);
       const relPath = path.relative(rootPath, filePath);
-      await getOrCreateCacheFile(cachePath, filePath, relPath, { type: 'jpg' });
+      await getOrCreateCacheFile(cachePath, filePath, relPath, { type: 'jpg' })
+      .catch(() => {
+        badPaths.push(filePath);
+      });
     }
   }
+  return badPaths;
 }
 
 type CacheFile = {
