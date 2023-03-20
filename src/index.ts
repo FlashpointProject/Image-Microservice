@@ -31,7 +31,7 @@ async function precacheFolder(cachePath: string, rootPath: string, folder: strin
       // Cache file
       const filePath = path.join(folder, file.name);
       const relPath = path.relative(rootPath, filePath);
-      await getOrCreateCacheFile(cachePath, filePath, relPath, { type: 'jpg' }, true);
+      await getOrCreateCacheFile(cachePath, filePath, relPath, { type: 'jpg' });
     }
   }
 }
