@@ -164,7 +164,8 @@ app.get(`${urlBase}/`, (req: Request, res: Response) => {
 });
 
 // Start precache task
-
+precacheTask(['Logos']);
+precacheTask(['Screenshots']);
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
