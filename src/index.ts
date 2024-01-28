@@ -14,6 +14,7 @@ const urlBase = process.env.URL_BASE || '';
 const imagesFolder = path.resolve(process.env.IMAGES_FOLDER || 'images');
 const cacheFolder = path.resolve(process.env.CACHE_FOLDER || 'cache');
 const debug = !!process.env.DEBUG;
+const apiKey = process.env.API_KEY;
 
 function debugPrint(text: string) {
   if (debug) {
@@ -174,6 +175,37 @@ function genImageRoute(folders: string[]) {
         console.error(err);
       });
 
+    }
+  });
+
+  app.delete(`${urlBase}/${folders.join('/')}/:f1/:f2/:filename`, async (req, res) => {
+    // Check the Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+      return res.status(401).send('Unauthorized');
+    }
+  
+    // If authorized, proceed to delete the file
+    const filePath = path.join(rootPath, req.params.f1, req.params.f2, req.params.filename);
+    const relPath = path.relative(rootPath, filePath);
+    const newFileName = path.parse(path.basename(relPath)).name + '.jpg';
+    const newRelPath = path.join(path.dirname(relPath), newFileName);
+    const destPath = path.join(cachePath, newRelPath);
+    console.log("Deleting " + destPath);
+
+    if (isSubFile(cachePath, destPath)) {
+      // Add your logic to check if the file exists and delete it
+      try {
+        if (fs.existsSync(destPath)) {
+          fs.unlinkSync(destPath);
+        }
+        res.status(200).send('File deleted successfully');
+      } catch (err) {
+        console.error(err);
+        res.status(500).send('Error deleting file');
+      }
+    } else {
+      res.status(400).send('File in bad directory');
     }
   });
 }
