@@ -178,7 +178,7 @@ function genImageRoute(folders: string[]) {
     }
   });
 
-  app.delete(`${urlBase}/${folders.join('/')}/:f1/:f2/:filename`, async (req, res) => {
+  app.delete(`/${urlBase}/${folders.join('/')}/:f1/:f2/:filename`, async (req, res) => {
     // Check the Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
