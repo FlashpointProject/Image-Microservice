@@ -155,7 +155,7 @@ function genImageRoute(folders: string[]) {
   const rootPath = path.join(imagesFolder, ...folders);
   fs.mkdirSync(cachePath, { recursive: true });
 
-  app.get(`${urlBase}/${folders.join('/')}/:f1/:f2/:filename`, async (req: Request, res: Response) => {
+  app.get(`/${urlBase}/${folders.join('/')}/:f1/:f2/:filename`, async (req: Request, res: Response) => {
     const filePath = path.join(rootPath, req.params.f1, req.params.f2, req.params.filename);
     const relPath = path.relative(rootPath, filePath);
     if (isSubFile(imagesFolder, filePath)) {
@@ -213,7 +213,7 @@ function genImageRoute(folders: string[]) {
 genImageRoute(['Logos']);
 genImageRoute(['Screenshots']);
 
-app.get(`${urlBase}/`, (req: Request, res: Response) => {
+app.get(`/${urlBase}/`, (req: Request, res: Response) => {
   res.send('Express + TypeScript Server');
 });
 
@@ -221,8 +221,8 @@ app.get(`${urlBase}/`, (req: Request, res: Response) => {
 precacheTask(['Logos']);
 precacheTask(['Screenshots']);
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+app.listen(Number(port), "0.0.0.0", () => {
+  console.log(`⚡️[server]: Server is running at http://0.0.0.0:${port}`);
 });
 
 function isSubFile(root: string, absPath: string) {
