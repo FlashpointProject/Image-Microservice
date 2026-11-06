@@ -1,0 +1,17 @@
+.git
+.github
+.idea
+.vscode
+*.md
+.env*
+!.env.example
+*.sqlite*
+*.db*
+*.bck
+*.bak
+*.log
+node_modules
+dist
+cache
+images
+Dockerfile*

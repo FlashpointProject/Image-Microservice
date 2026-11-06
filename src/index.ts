@@ -165,7 +165,19 @@ function genImageRoute(folders: string[]) {
       await getOrCreateCacheFile(cachePath, filePath, relPath, opts)
       .then((cacheFileInfo) => {
         if (cacheFileInfo.success) {
-          res.sendFile(cacheFileInfo.filePath);
+          try {
+            res.sendFile(cacheFileInfo.filePath, (err) => {
+              if (err) {
+                console.error(err);
+                if (!res.headersSent) {
+                  res.status(500).send('Error sending image');
+                }
+              }
+            });
+          } catch (err) {
+            res.status(500).send('Error sending image');
+            console.error(err);
+          }
         } else {
           res.status(404).send('Not Found');
         }
