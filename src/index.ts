@@ -129,7 +129,7 @@ async function getOrCreateCacheFile(cachePath: string, filePath: string, relPath
     await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
     return new Promise<CacheFile>((resolve, reject) => {
       sharp(filePath)
-      .toFormat(opts.type)
+      .toFormat(opts.type === 'jpg' ? 'jpeg' : opts.type)
       .toBuffer((err, buffer, info) => {
         if (err) {
           reject(err);
@@ -160,12 +160,30 @@ function genImageRoute(folders: string[]) {
     const relPath = path.relative(rootPath, filePath);
     if (isSubFile(imagesFolder, filePath)) {
       // Check query params for options
-      const opts = parseOptionQuery(req.query);
+      let opts: ImageOpts;
+      try {
+        opts = parseOptionQuery(req.query);
+      } catch (err) {
+        res.status(400).send('Invalid image type');
+        return;
+      }
 
       await getOrCreateCacheFile(cachePath, filePath, relPath, opts)
       .then((cacheFileInfo) => {
         if (cacheFileInfo.success) {
-          res.sendFile(cacheFileInfo.filePath);
+          try {
+            res.sendFile(cacheFileInfo.filePath, (err) => {
+              if (err) {
+                console.error(err);
+                if (!res.headersSent) {
+                  res.status(500).send('Error sending image');
+                }
+              }
+            });
+          } catch (err) {
+            res.status(500).send('Error sending image');
+            console.error(err);
+          }
         } else {
           res.status(404).send('Not Found');
         }
