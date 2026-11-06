@@ -160,7 +160,13 @@ function genImageRoute(folders: string[]) {
     const relPath = path.relative(rootPath, filePath);
     if (isSubFile(imagesFolder, filePath)) {
       // Check query params for options
-      const opts = parseOptionQuery(req.query);
+      let opts: ImageOpts;
+      try {
+        opts = parseOptionQuery(req.query);
+      } catch (err) {
+        res.status(400).send('Invalid image type');
+        return;
+      }
 
       await getOrCreateCacheFile(cachePath, filePath, relPath, opts)
       .then((cacheFileInfo) => {
