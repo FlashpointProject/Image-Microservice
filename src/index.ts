@@ -129,7 +129,7 @@ async function getOrCreateCacheFile(cachePath: string, filePath: string, relPath
     await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
     return new Promise<CacheFile>((resolve, reject) => {
       sharp(filePath)
-      .toFormat(opts.type)
+      .toFormat(opts.type === 'jpg' ? 'jpeg' : opts.type)
       .toBuffer((err, buffer, info) => {
         if (err) {
           reject(err);
